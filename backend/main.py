@@ -1,29 +1,32 @@
+# main.py
 import asyncio
 from llm_providers.factory import LLMProviderFactory
+from document.qa import DocumentQA
+import os
 
 async def main():
-    # 1️⃣ List available providers
-    print("Available providers:", LLMProviderFactory.list_providers())
-
-    # 2️⃣ Create OpenAI provider instance
+    # --- Step 1: Create LLM Provider ---
     provider = LLMProviderFactory.create("openai", api_key="sk-...")
-    # 3️⃣ Test API key
-    success = await provider.test()
-    print("API key test passed:", success)
 
-    # 4️⃣ List available models
-    models = await provider.list_models()
-    print("Available OpenAI models (first 10):", models[:10])
+    # Test provider
+    test_passed = await provider.test()
+    print("API key test passed:", test_passed)
 
-    # 5️⃣ Simple chat with streaming
-    print("\nStreaming response from OpenAI:")
-    async for token in provider.stream(
-        messages=[{"role": "user", "content": "Hello, can you introduce yourself?"}],
-        model="gpt-3.5-turbo"
-    ):
-        print(token, end="", flush=True)
-    print("\n\nStreaming complete!")
+    # --- Step 2: Load document and embed chunks ---
+    doc_file = "C:\Coding\Sample_Files\sample.txt"  # replace with your test file (TXT, PDF, DOCX)
+    doc_qa = DocumentQA(llm_provider=provider)
+    await doc_qa.load_and_embed_document(doc_file)
+    print(f"Document loaded and embedded. Total chunks: {len(doc_qa.chunks)}")
 
-# Run async main
+    # --- Step 3: Ask a sample question ---
+    question = "What is the main topic of the document?"
+    question_embedding = await provider.embed_text(question)
+
+    # Retrieve top 3 relevant chunks
+    top_chunks = doc_qa.retrieve_relevant_chunks(question_embedding, top_k=3)
+    print("\nTop 3 chunks for the question:")
+    for i, chunk in enumerate(top_chunks, 1):
+        print(f"\n--- Chunk {i} ---\n{chunk[:500]}...")  # show first 500 chars
+
 if __name__ == "__main__":
     asyncio.run(main())

@@ -75,3 +75,10 @@ class OpenAIProvider(BaseLLMProvider):
                 if 'content' in delta:
                     yield delta['content']
                     await asyncio.sleep(0)  # allow async streaming
+
+    async def embed_text(self, text: str, model: str = "text-embedding-3-large") -> list:
+        resp = openai.Embedding.create(
+            input=text,
+            model=model
+        )
+        return resp["data"][0]["embedding"]

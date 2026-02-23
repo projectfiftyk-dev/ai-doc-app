@@ -56,3 +56,10 @@ class BaseLLMProvider(ABC):
         :yield: Tokens as strings
         """
         pass
+
+    @abstractmethod
+    async def embed_text(self, text: str, model: str = None) -> list:
+        """
+        Return embeddings for the given text.
+        """
+        pass
