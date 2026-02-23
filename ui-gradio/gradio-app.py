@@ -48,8 +48,10 @@ def qa_clear():
 # ------------------ Document Translation ------------------
 async def translate_interface(file, target_language):
     file_path = file.name
-    translated_text = await agent.document_translate(file_path, target_language)
-    return translated_text
+
+    output_path = await agent.document_translate(file_path, target_language)
+
+    return output_path
 
 # ------------------ Gradio UI ------------------
 with gr.Blocks() as demo:
@@ -90,7 +92,7 @@ with gr.Blocks() as demo:
     with gr.Tab("Document Translation"):
         trans_file = gr.File(label="Upload document")
         trans_lang = gr.Textbox(label="Target language")
-        trans_output = gr.Textbox(label="Translated text")
+        trans_output = gr.File(label="Download translated document")
         trans_button = gr.Button("Translate")
         trans_button.click(
             fn=translate_interface,
@@ -98,4 +100,5 @@ with gr.Blocks() as demo:
             outputs=[trans_output]
         )
 
+demo.queue()
 demo.launch()

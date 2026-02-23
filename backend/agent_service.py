@@ -1,10 +1,11 @@
 # agent_service.py
 import asyncio
 from pathlib import Path
+from document.handler.factory import DocumentHandlerFactory
 from document.loader.factory import DocumentLoaderFactory
+from document.translator.text_translator import TextTranslator
 from llm_providers.factory import LLMProviderFactory
 from document.qa import DocumentQA
-from document.chunker import Chunker
 
 class AgentService:
     def __init__(self, provider_name: str, api_key: str, model: str = "gpt-3.5-turbo"):
@@ -49,25 +50,23 @@ class AgentService:
         return answer
 
     async def document_translate(self, doc_path: str, target_language: str) -> str:
-        """Document Translation mode"""
-        # Use factory to load document
+        """
+        Structure-aware document translation.
+        Delegates format handling to DocumentHandlerFactory.
+        """
+
         ext = Path(doc_path).suffix
-        loader = DocumentLoaderFactory.create(ext)
-        text = loader.load_file(doc_path)
+        handler = DocumentHandlerFactory.create(ext)
 
-        # Chunk the document
-        chunker = Chunker()
-        chunks = chunker.chunk_text(text)
+        text_translator = TextTranslator(
+            llm_provider=self.provider,
+            model=self.model
+        )
 
-        # Translate each chunk
-        translated_chunks = []
-        for chunk in chunks:
-            prompt = f"Translate the following text to {target_language}:\n\n{chunk}"
-            translation = await self.provider.complete(
-                messages=[{"role": "user", "content": prompt}],
-                model=self.model
-            )
-            translated_chunks.append(translation)
+        output_path = await handler.translate(
+            file_path=doc_path,
+            text_translator=text_translator,
+            target_language=target_language
+        )
 
-        # Combine translations
-        return "\n\n".join(translated_chunks)
+        return output_path
