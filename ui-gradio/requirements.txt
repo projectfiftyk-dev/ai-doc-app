@@ -1,0 +1,9 @@
+# backend requirements
+openai==0.28.0       # LLM support
+pydantic<3,>=1.9.0   # used by OpenAI
+pdfplumber           # PDF support
+python-docx          # DOCX support
+tqdm                 # optional, for progress bars
+
+# UI requirements
+gradio>=3.40.0
