@@ -16,7 +16,7 @@ class BaseLLMProvider(ABC):
         pass
 
     @abstractmethod
-    async def test(self) -> bool:
+    async def test(self, model: str = None) -> bool:
         """
         Test the provider API key / connectivity.
         Returns True if successful, False otherwise.

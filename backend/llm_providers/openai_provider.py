@@ -21,18 +21,15 @@ class OpenAIProvider(BaseLLMProvider):
         resp = openai.Model.list()
         return [m['id'] for m in resp['data']]
 
-    async def test(self) -> bool:
-        """Test the API key with a tiny prompt."""
+    async def test(self, model: str = "gpt-3.5-turbo") -> bool:
         try:
-            r = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[{"role": "user", "content": "Hello"}],
-                max_tokens=5
-            )
-            return True if r else False
+            # Simple call to check if model works
+            prompt = "Say hello"
+            await self.complete(messages=[{"role": "user", "content": prompt}], model=model)
+            return True
         except Exception:
             return False
-
+        
     async def complete(
         self,
         messages: List[Dict],

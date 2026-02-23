@@ -1,8 +1,10 @@
 # agent_service.py
 import asyncio
+from pathlib import Path
+from document.loader.factory import DocumentLoaderFactory
 from llm_providers.factory import LLMProviderFactory
 from document.qa import DocumentQA
-from document.loader import DocumentLoader
+from document.chunker import Chunker
 
 class AgentService:
     def __init__(self, provider_name: str, api_key: str, model: str = "gpt-3.5-turbo"):
@@ -24,9 +26,14 @@ class AgentService:
 
     async def document_qa(self, doc_path: str, question: str, top_k: int = 3) -> str:
         """Document QA mode"""
+        # Use factory to load document
+        ext = Path(doc_path).suffix
+        loader = DocumentLoaderFactory.create(ext)
+        text = loader.load_file(doc_path)
+
         # Prepare QA
         doc_qa = DocumentQA(llm_provider=self.provider)
-        await doc_qa.load_and_embed_document(doc_path)  # <-- pass path, not loaded text
+        await doc_qa.load_and_embed_document(text)
 
         # Embed question & retrieve chunks
         question_embedding = await self.provider.embed_text(question)
@@ -43,12 +50,12 @@ class AgentService:
 
     async def document_translate(self, doc_path: str, target_language: str) -> str:
         """Document Translation mode"""
-        # Load document
-        loader = DocumentLoader()
+        # Use factory to load document
+        ext = Path(doc_path).suffix
+        loader = DocumentLoaderFactory.create(ext)
         text = loader.load_file(doc_path)
 
         # Chunk the document
-        from document.chunker import Chunker
         chunker = Chunker()
         chunks = chunker.chunk_text(text)
 

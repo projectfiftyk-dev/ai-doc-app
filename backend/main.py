@@ -13,7 +13,7 @@ async def main():
     print("API key test passed:", test_passed)
 
     # --- Step 2: Document QA ---
-    doc_file = r"path-to-sample"
+    doc_file = r"C:\Coding\Sample_Files\sample.txt"
     question = "What is the main topic of the document?"
     
     import os
